@@ -3,218 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website with Preloader</title>
+    <title>Dynamic Image Viewer with PDF Downloader</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
-        /* ========================================================
-           ১. প্রি-লোডার (Splash Screen) এবং পানির ফোঁটা অ্যানিমেশন
-           ======================================================== */
+        /* প্রি-লোডার এবং বেসিক স্টাইল */
         #preloader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            background-color: #3a3a3a; /* ছবির মতো ডার্ক গ্রে ব্যাকগ্রাউন্ড */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            overflow: hidden;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background-color: #3a3a3a; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 9999;
             transition: opacity 0.5s ease-out, visibility 0.5s;
         }
+        .ripple-container { position: relative; width: 250px; height: 250px; display: flex; justify-content: center; align-items: center; }
+        .ripple { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(29,112,184,0.8) 0%, rgba(0,150,64,0.6) 70%, rgba(58,58,58,0) 100%); animation: waterDrop 3s cubic-bezier(0.1, 0.8, 0.3, 1) infinite; opacity: 0; }
+        .ripple:nth-child(2) { animation-delay: 1s; }
+        .ripple:nth-child(3) { animation-delay: 2s; }
+        @keyframes waterDrop { 0% { width: 0px; height: 0px; opacity: 0.8; } 100% { width: 350px; height: 350px; opacity: 0; } }
+        .preloader-logo { position: relative; z-index: 10; width: 120px; }
 
-        /* মোশন গ্রাফিক্স ওয়াটার রিপল (পানির ফোঁটার বৃত্ত) */
-        .ripple-container {
-            position: relative;
-            width: 250px;
-            height: 250px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .ripple {
-            position: absolute;
-            border-radius: 50%;
-            /* লোগোর কালারের মতো সবুজ-নীল গ্রেডিয়েন্ট */
-            background: radial-gradient(circle, rgba(29,112,184,0.8) 0%, rgba(0,150,64,0.6) 70%, rgba(58,58,58,0) 100%);
-            animation: waterDrop 3s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
-            opacity: 0;
-        }
-
-        /* পানির ফোঁটার একাধিক লেয়ার তৈরি করতে ডিলে (Delay) */
-        .ripple:nth-child(2) {
-            animation-delay: 1s;
-        }
-        .ripple:nth-child(3) {
-            animation-delay: 2s;
-        }
-
-        /* মোশন গ্রাফিক্স অ্যানিমেশন ইফেক্ট */
-        @keyframes waterDrop {
-            0% {
-                width: 0px;
-                height: 0px;
-                opacity: 0.8;
-            }
-            100% {
-                width: 350px;
-                height: 350px;
-                opacity: 0;
-            }
-        }
-
-        /* মাঝখানের মূল লোগো */
-        .preloader-logo {
-            position: relative;
-            z-index: 10;
-            width: 120px; /* লোগোর সাইজ */
-            height: auto;
-        }
-
-        /* loading টেক্সট স্টাইল */
+        /* লোডিং টেক্সট স্টাইল */
         .loading-text {
             color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 16px;
-            margin-top: 30px;
-            letter-spacing: 1px;
+            font-family: tsans-serift;
+            font-size: 15px;
+            font-weight: bold;
+            margin-top: 15px;
             opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.5s ease-in-out;
+            letter-spacing: 1px;
+            animation: fadeInText 1s forwards;
+        }
+        @keyframes fadeInText {
+            to { opacity: 1; }
         }
 
-        /* টেক্সটটি দেখানোর জন্য ক্লাস */
-        .loading-text.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        /* হেডার ওツールバー */
+        .main-header { background: linear-gradient(to right, #009640, #1D70B8, #003366); height: 70px; display: flex; align-items: center; justify-content: flex-end; padding: 0 30px; }
+        .logo-container img { height: 50px; object-fit: contain; }
+        .toolbar-container { background-color: #ffffff; padding: 12px 20px; border-bottom: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px; position: sticky; top: 0; z-index: 100; }
+        .toolbar-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .btn-tool { background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; color: #334155; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.2s; }
+        .btn-tool:hover { background-color: #f8fafc; border-color: #94a3b8; }
 
-        /* ========================================================
-           ২. মূল ওয়েবসাইট হেডার এবং টুলবার স্টাইল
-           ======================================================== */
-        .main-header {
-            background: linear-gradient(to right, #009640, #1D70B8, #003366);
-            height: 70px;
+        /* ইমেজ কন্টেন্ট এরিয়া */
+        .content-area {
+            margin: 20px;
+            padding: 20px;
             display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding: 0 30px;
-        }
-
-        .logo-container img {
-            height: 50px;
-            object-fit: contain;
-        }
-
-        .toolbar-container {
-            background-color: #ffffff;
-            padding: 12px 20px;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .toolbar-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-tool {
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 6px 12px;
-            color: #334155;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
             justify-content: center;
-            font-size: 14px;
-            transition: all 0.2s;
+            align-items: center;
+            overflow: auto;
+        }
+        .image-wrapper {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background-color: white;
+            border-radius: 4px;
+            transition: filter 0.3s ease, transform 0.2s ease;
+            display: inline-block;
+        }
+        #viewerImage {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            transition: transform 0.3s ease;
         }
 
-        .btn-tool:hover {
-            background-color: #f8fafc;
-            border-color: #94a3b8;
-        }
-
-        .page-input {
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            width: 70px;
-            text-align: center;
-            padding: 4px;
-            font-size: 14px;
-            font-weight: 600;
-        }
+        /* ডার্ক মোড স্টাইল */
+        body.dark-mode { background-color: #0f172a !important; }
+        body.dark-mode .toolbar-container { background-color: #1e293b; border-bottom-color: #334155; }
+        body.dark-mode .btn-tool { background-color: #334155; border-color: #475569; color: #f1f5f9; }
+        body.dark-mode .btn-tool:hover { background-color: #475569; }
+        body.dark-mode .image-wrapper { filter: invert(0.9) hue-rotate(180deg); }
     </style>
 </head>
 <body style="margin:0; font-family: sans-serif; background-color: #f1f5f9;">
 
     <div id="preloader">
-        <div class="ripple-container">
+        <div class="ripple-container" id="animationContainer">
             <div class="ripple"></div>
             <div class="ripple"></div>
             <div class="ripple"></div>
-            
-            <img class="preloader-logo" src="asharqia chamber.png">
+            <img class="preloader-logo" src="asharqia chamber.png" alt="Logo">
         </div>
-        
-        <div class="loading-text" id="loadingText">Please wait loading...</div>
+        <div id="loadingTextContainer"></div>
     </div>
+
     <header class="main-header">
         <div class="logo-container">
-            <img src="asharqia chamber.png">
+            <img src="asharqia chamber.png" alt="Logo">
         </div>
     </header>
 
     <div class="toolbar-container">
         <div class="toolbar-row">
             <button class="btn-tool"><i class="fa-solid fa-list"></i></button>
-            <div style="display: flex; align-items: center; border: 1px solid #cbd5e1; border-radius: 6px; background: white;">
-                <button class="btn-tool" style="border: none;"><i class="fa-solid fa-chevron-left"></i></button>
-                <input type="text" class="page-input" value="1/0" style="border: none; border-left: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1;">
-                <button class="btn-tool" style="border: none;"><i class="fa-solid fa-chevron-right"></i></button>
-            </div>
-            <button class="btn-tool"><i class="fa-solid fa-download"></i></button>
+            <button class="btn-tool" id="downloadPdf" title="ডাউনলোড পিডিএফ"><i class="fa-solid fa-download"></i> </button>
         </div>
 
         <div class="toolbar-row">
-            <button class="btn-tool"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
-            <button class="btn-tool"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-            <button class="btn-tool"><i class="fa-solid fa-arrows-left-right"></i></button>
+            <button class="btn-tool" id="zoomOut"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+            <button class="btn-tool" id="zoomIn"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+            <button class="btn-tool" id="zoomReset"><i class="fa-solid fa-arrows-left-right"></i></button>
             <span style="color: #cbd5e1; margin: 0 4px;">|</span>
-            <button class="btn-tool"><i class="fa-solid fa-rotate-left"></i></button>
-            <button class="btn-tool"><i class="fa-solid fa-arrow-rotate-left"></i></button>
-            <button class="btn-tool"><i class="fa-solid fa-arrow-rotate-right"></i></button>
-            <button class="btn-tool"><i class="fa-solid fa-rotate-right"></i></button>
+            <button class="btn-tool" id="rotateLeft"><i class="fa-solid fa-rotate-left"></i></button>
+            <button class="btn-tool" id="rotateRight"><i class="fa-solid fa-rotate-right"></i></button>
             <span style="color: #cbd5e1; margin: 0 4px;">|</span>
-            <button class="btn-tool"><i class="fa-solid fa-moon"></i></button>
+            <button class="btn-tool" id="darkModeToggle"><i class="fa-solid fa-moon"></i></button>
         </div>
     </div>
 
-    <div style="margin: 20px; padding: 100px 40px; background-color: #ffffff; border: 1px solid #e2e8f0; text-align: center; border-radius: 4px;">
+    <div class="content-area">
+        <div class="image-wrapper" id="imageWrapper">
+            <img id="viewerImage" src="" alt="Loading Document...">
+        </div>
     </div>
 
-
     <script>
-        // ৬.৫ সেকেন্ড পর "Please wait loading" লেখাটি দেখাবে
-        setTimeout(function() {
-            document.getElementById('loadingText').classList.add('show');
-        }, 6500); 
+        // ============== গিটহাব কনফিগারেশন সেকশন ==============
+        const githubUser = 'আপনার_গিটহাব_ইউজারনেম'; // আপনার GitHub ইউজারনেম দিন
+        const repoName = 'আপনার_রেপো_নাম';       // আপনার რეპოজিটরি বা রেপো নাম দিন
+        const folderName = 'Document';             // ফোল্ডারের নাম পরিবর্তন করার দরকার নেই
+        
+        // যে ফাইলটি হোমপেজে দেখাতে চান তার নাম এখানে লিখুন (এক্সটেনশন সহ)
+        let currentFileName = '01.jpg'; 
+        // ====================================================
 
-        // ঠিক ৮ সেকেন্ড (৮০০০ মিলিসেকেন্ড) পর প্রি-লোডারটি বন্ধ হয়ে হোমপেজ দেখাবে
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                var preloader = document.getElementById('preloader');
-                preloader.style.opacity = '0';
-                preloader.style.visibility = 'hidden';
-            }, 8000); 
+        // গিটহাবের র-লিংক (Raw URL) জেনারেট করার লজিক
+        const baseUrl = `https://raw.githubusercontent.com/${githubUser}/${repoName}/main/${folderName}/`;
+        const imageUrl = baseUrl + currentFileName;
+
+        // গিটহাব থেকে ইমেজ লোড করা
+        const viewerImage = document.getElementById('viewerImage');
+        viewerImage.src = imageUrl;
+
+        // স্টেট ম্যানেজমেন্ট (জুম ও রোটেশন)
+        let scale = 1.0;
+        let rotation = 0;
+        const imageWrapper = document.getElementById('imageWrapper');
+
+        // জুম এবং রোটেশন অ্যাপ্লাই করার ফাংশন
+        function updateImageTransform() {
+            viewerImage.style.transform = `scale(${scale}) rotate(${rotation}deg)`;
+        }
+
+        // ============== ১. প্রি-লোডার ও লোডিং টেক্সট লজিক (৮ সেকেন্ড) ==============
+        const preloader = document.getElementById('preloader');
+        const animationContainer = document.getElementById('animationContainer');
+        const loadingTextContainer = document.getElementById('loadingTextContainer');
+
+        // ৪ সেকেন্ড পর অ্যানিমেশন লুকিয়ে টেক্সট দেখাবে
+        setTimeout(() => {
+            animationContainer.style.display = 'none';
+            loadingTextContainer.innerHTML = '<div class="loading-text">Please wait loading...</div>';
+        }, 4000);
+
+        // ঠিক ৮ সেকেন্ড (৮০০০ মিলি-সেকেন্ড) পর প্রি-লোডার স্ক্রিন বন্ধ হবে
+        setTimeout(() => {
+            preloader.style.opacity = '0';
+            preloader.style.visibility = 'hidden';
+        }, 8000);
+
+
+        // ============== ২. টুলবার কন্ট্রোলস (জুম, রোটেশন, ডার্ক মোড) ==============
+        
+        // জুম ইন
+        document.getElementById('zoomIn').addEventListener('click', () => {
+            if (scale >= 3.0) return;
+            scale += 0.2;
+            updateImageTransform();
+        });
+
+        // জুম আউট
+        document.getElementById('zoomOut').addEventListener('click', () => {
+            if (scale <= 0.4) return;
+            scale -= 0.2;
+            updateImageTransform();
+        });
+
+        // জুম রিসেট
+        document.getElementById('zoomReset').addEventListener('click', () => {
+            scale = 1.0;
+            rotation = 0;
+            updateImageTransform();
+        });
+
+        // বামে ঘোরানো
+        document.getElementById('rotateLeft').addEventListener('click', () => {
+            rotation = (rotation - 90) % 360;
+            updateImageTransform();
+        });
+
+        // ডানে ঘোরানো
+        document.getElementById('rotateRight').addEventListener('click', () => {
+            rotation = (rotation + 90) % 360;
+            updateImageTransform();
+        });
+
+        // ডার্ক মোড টগল
+        document.getElementById('darkModeToggle').addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            const icon = this.querySelector('i');
+            if (document.body.classList.contains('dark-mode')) {
+                icon.className = 'fa-solid fa-sun';
+            } else {
+                icon.className = 'fa-solid fa-moon';
+            }
+        });
+
+
+        // ============== ৩. JPG ভিউ হবে কিন্তু PDF ডাউনলোড হবে লজিক ==============
+        document.getElementById('downloadPdf').addEventListener('click', () => {
+            // ফাইলের এক্সটেনশন .jpg থেকে .pdf এ কনভার্ট করা হচ্ছে
+            const pdfFileName = currentFileName.replace(/\.[^/.]+$/, "") + ".pdf";
+            const pdfDownloadUrl = baseUrl + pdfFileName;
+
+            // ডাউনলোডের জন্য একটি ডামি লিংক তৈরি করা
+            const link = document.createElement('a');
+            link.href = pdfDownloadUrl;
+            link.download = pdfFileName;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         });
     </script>
+</body>
+</html>
